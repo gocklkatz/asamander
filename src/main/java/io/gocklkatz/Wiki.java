@@ -1,10 +1,14 @@
 package io.gocklkatz;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
+import java.util.stream.Stream;
 
 public class Wiki {
 
@@ -22,9 +26,85 @@ public class Wiki {
 
     }
 
-    public static void filesBlock() {
+    public static void filesBlock() throws IOException {
         // ---  ---  ---  ---  ---
         // Files.java
+
+        Path path = Path.of("test.txt");
+        System.out.println(Files.size(path));
+        for(String line : Files.readAllLines(path)) {
+            System.out.println(line);
+        }
+
+        /*
+        try (InputStream is = new FileInputStream(path.toFile())) {
+            int i = 0;
+            while ((i = is.read()) != -1) {
+                System.out.print(i + " ");
+            }
+        }
+        System.out.println();
+        try (InputStream is = new FileInputStream(path.toFile())) {
+            int i = 0;
+            while ((i = is.read()) != -1) {
+                if (i != 10) {
+                    char c = (char) i;
+                    System.out.print(c + " ");
+                } else {
+                    System.out.print("\\n ");
+                }
+            }
+        }
+         */
+
+        // readAllBytes()
+        byte[] readAllBytes = Files.readAllBytes(path);
+        System.out.println(Arrays.toString(readAllBytes));
+
+        // readAllLines()
+        List<String> readAllLines1 = Files.readAllLines(path);
+        readAllLines1.forEach(System.out::println);
+        List<String> readAllLines2 = Files.readAllLines(path, StandardCharsets.UTF_8);
+        readAllLines2.forEach(System.out::println);
+        List<String> readAllLines3 = Files.readAllLines(path, StandardCharsets.ISO_8859_1);
+        readAllLines3.forEach(System.out::println);
+
+        // readString()
+        String readString1 = Files.readString(path);
+        System.out.println("Readstring1: " + readString1);
+        String readString2 = Files.readString(path, StandardCharsets.UTF_8);
+        // Alternative vor Java 22
+        String readString3 = new String( Files.readAllBytes(path), StandardCharsets.UTF_8);
+
+        Path pathWrite = Path.of("test2.txt");
+        // write() bytes
+        byte[] bytesWrite = new byte[] {109, 110, 111};
+        Files.write(pathWrite, bytesWrite);
+        // write() Iterable<? extends CharSequence>
+        List<String> stringList = new ArrayList<>();
+        stringList.add("pqr");
+        stringList.add("stu");
+        Files.write(pathWrite, stringList, StandardCharsets.UTF_8);
+        // writeString()
+        Files.writeString(pathWrite, "some String", StandardCharsets.UTF_8);
+
+        // lines(), you need to CLOSE the stream. I dont care if you cross it, you need to close it!
+        try (Stream<String> stringStream = Files.lines(path, StandardCharsets.UTF_8)) {
+            System.out.println("Lines as Stream");
+            stringStream.forEach(System.out::println);
+        }
+
+        // copy
+        Path test3Path = Path.of("test3.txt");
+        Files.deleteIfExists(test3Path);
+        try (InputStream is = new FileInputStream("test.txt")) {
+            Files.copy(is, test3Path);
+        }
+
+        try (OutputStream os = new FileOutputStream("test4.txt")) {
+            Files.copy(test3Path, os);
+        }
+
     }
 
     public static void pathBlock() throws IOException {
